@@ -1,0 +1,35 @@
+name: Sync LeetCode Solutions
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6:00 AM UTC
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout LeetKhata
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/LeetKhata/LeetKhata.csproj
+
+      - name: Build
+        run: dotnet build src/LeetKhata/LeetKhata.csproj -c Release --no-restore
+
+      - name: Run LeetKhata
+        env:
+          LEETKHATA__LeetCodeSession: ${{ secrets.LEETCODE_SESSION }}
+          LEETKHATA__LeetCodeCsrfToken: ${{ secrets.LEETCODE_CSRF_TOKEN }}
+          LEETKHATA__GitHubToken: ${{ secrets.GH_PAT }}
+          LEETKHATA__LeetCodeUsername: ${{ vars.LEETCODE_USERNAME }}
+          LEETKHATA__GitHubOwner: ${{ vars.GITHUB_OWNER }}
+          LEETKHATA__GitHubRepo: ${{ vars.GITHUB_REPO }}
+        run: dotnet run --project src/LeetKhata/LeetKhata.csproj -c Release --no-build
