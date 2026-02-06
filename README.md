@@ -27,7 +27,23 @@ Easy/1. Two Sum/
 
 ### 1. Get your LeetCode cookies
 
-Log in to [leetcode.com](https://leetcode.com) → DevTools (F12) → Application → Cookies → copy `LEETCODE_SESSION` and `csrftoken`. These expire every 2-4 weeks.
+#### Option A: Automatic (recommended)
+
+```bash
+# One-time setup
+pip install -r scripts/requirements.txt
+
+# Refresh cookies and update GitHub secrets
+python3 scripts/refresh-cookies.py --both
+```
+
+The script reads cookies directly from Chrome — just make sure you're logged into LeetCode in your browser.
+
+#### Option B: Manual
+
+Log in to [leetcode.com](https://leetcode.com) → DevTools (F12) → Application → Cookies → copy `LEETCODE_SESSION` and `csrftoken`.
+
+> Cookies expire every 2-4 weeks. Re-run the script or repeat the manual process when they do.
 
 ### 2. Create a GitHub PAT
 
@@ -36,15 +52,18 @@ Log in to [leetcode.com](https://leetcode.com) → DevTools (F12) → Applicatio
 ### 3. Run locally
 
 ```bash
-export LEETKHATA__LeetCodeSession="your_session"
-export LEETKHATA__LeetCodeCsrfToken="your_csrf_token"
-export LEETKHATA__GitHubToken="your_github_pat"
-export LEETKHATA__LeetCodeUsername="your_leetcode_username"
-export LEETKHATA__GitHubOwner="your_github_username"
-export LEETKHATA__GitHubRepo="leetcode-solutions"
+# Extract LeetCode cookies from Chrome into .env
+python3 scripts/refresh-cookies.py
+
+# Add your other config to .env (one-time)
+# LEETKHATA__GitHubToken=your_github_pat
+# LEETKHATA__LeetCodeUsername=your_leetcode_username
+# LEETKHATA__GitHubOwner=your_github_username
 
 dotnet run --project src/LeetKhata
 ```
+
+The app reads configuration from `.env` automatically. Environment variables override `.env` if both are set.
 
 ### 4. Deploy with GitHub Actions
 
@@ -54,6 +73,19 @@ dotnet run --project src/LeetKhata
 4. Add **Variables**: `LEETCODE_USERNAME`, `GITHUB_OWNER`, `GITHUB_REPO`
 
 Runs daily at 6:00 AM UTC. Trigger manually from the Actions tab anytime.
+
+## Cookie Refresh
+
+LeetCode cookies expire every 2-4 weeks. Use the helper script to refresh them:
+
+```bash
+python3 scripts/refresh-cookies.py              # Save to .env (default)
+python3 scripts/refresh-cookies.py --github    # Update GitHub Actions secrets
+python3 scripts/refresh-cookies.py --both      # .env + GitHub secrets
+python3 scripts/refresh-cookies.py --repo owner/repo  # Override auto-detected repo
+```
+
+**Prerequisites:** `pip install -r scripts/requirements.txt` and `gh auth login` (for `--github`/`--both`). Requires Chrome with an active LeetCode login.
 
 ## Configuration
 

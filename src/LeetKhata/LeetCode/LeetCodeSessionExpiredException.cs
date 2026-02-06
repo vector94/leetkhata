@@ -23,6 +23,9 @@ public class LeetCodeSessionExpiredException : Exception
            - LEETKHATA__LeetCodeSession  (or secret LEETCODE_SESSION)
            - LEETKHATA__LeetCodeCsrfToken (or secret LEETCODE_CSRF_TOKEN)
 
+        TIP: Run 'python3 scripts/refresh-cookies.py --both' to automate
+        cookie capture and GitHub secrets update.
+
         This typically needs to be done every 2-4 weeks.
         ============================================================
         """;

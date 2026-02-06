@@ -8,9 +8,29 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 
+// Load .env file from working directory if it exists (written by scripts/refresh-cookies.py)
+var envFile = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+var envVars = new Dictionary<string, string?>();
+if (File.Exists(envFile))
+{
+    foreach (var line in File.ReadAllLines(envFile))
+    {
+        var trimmed = line.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#'))
+            continue;
+        var idx = trimmed.IndexOf('=');
+        if (idx <= 0)
+            continue;
+        var key = trimmed[..idx].Trim().Replace("__", ":");
+        var value = trimmed[(idx + 1)..].Trim();
+        envVars[key] = value;
+    }
+}
+
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: true)
+    .AddInMemoryCollection(envVars)
     .AddEnvironmentVariables("LEETKHATA__")
     .Build();
 
