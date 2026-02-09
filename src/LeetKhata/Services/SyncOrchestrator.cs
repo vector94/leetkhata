@@ -126,7 +126,21 @@ public class SyncOrchestrator
         }
         allFiles[_tracker.GetSyncStateFilePath()] = _tracker.SerializeState(state);
 
-        // 6. Commit all files in a single commit
+        // 6. Update repo README with difficulty counts
+        var counts = await _github.GetDifficultyCountsAsync();
+        var newFolders = allFiles.Keys
+            .Select(p => p.Split('/'))
+            .Where(p => p.Length >= 2 && counts.ContainsKey(p[0]))
+            .Select(p => $"{p[0]}/{p[1]}")
+            .ToHashSet();
+        foreach (var folder in newFolders)
+        {
+            var difficulty = folder.Split('/')[0];
+            counts[difficulty]++;
+        }
+        allFiles["README.md"] = BuildReadme(counts["Easy"], counts["Medium"], counts["Hard"]);
+
+        // 7. Commit all files in a single commit
         var sb = new System.Text.StringBuilder();
         if (syncedProblems.Count == 1)
             sb.Append($"LeetKhata: Add {syncedProblems[0].Id}. {syncedProblems[0].Title} ({syncedProblems[0].Difficulty})");
@@ -143,4 +157,22 @@ public class SyncOrchestrator
 
         _logger.LogInformation("Successfully synced {Count} submission(s).", syncedIds.Count);
     }
+
+    private static string BuildReadme(int easy, int medium, int hard) =>
+$@"# LeetCode Solutions
+
+This repository contains all my accepted LeetCode submissions, organized by difficulty.
+
+| Difficulty | Count |
+|------------|-------|
+| Easy       | {easy} |
+| Medium     | {medium} |
+| Hard       | {hard} |
+
+Each solution includes the code and a README with problem metadata (topics, runtime, memory, submission link).
+
+## Sync
+
+Solutions are automatically synced from LeetCode using [LeetKhata](https://github.com/vector94/leetkhata), a tool that fetches accepted submissions via the LeetCode API and pushes them to GitHub, organized by difficulty.
+";
 }
