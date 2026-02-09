@@ -1,6 +1,7 @@
 using LeetKhata.Configuration;
 using LeetKhata.GitHub;
 using LeetKhata.LeetCode;
+using LeetKhata.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -38,14 +39,30 @@ public class SyncOrchestrator
         // 1. Load sync state from the repo
         var state = await _tracker.LoadStateAsync();
 
-        // 2. Fetch recent submissions from LeetCode
-        var submissions = await _leetcode.GetRecentSubmissionsAsync(offset: 0, limit: _options.FetchLimit);
-        var accepted = submissions
+        // 2. Fetch submissions from LeetCode (paginated, 20 per request)
+        var allSubmissions = new List<LeetCodeSubmission>();
+        const int pageSize = 20;
+        var offset = 0;
+
+        while (offset < _options.FetchLimit)
+        {
+            var batch = await _leetcode.GetRecentSubmissionsAsync(offset, pageSize);
+            if (batch.Count == 0)
+                break;
+
+            allSubmissions.AddRange(batch);
+            offset += batch.Count;
+
+            if (batch.Count < pageSize)
+                break;
+        }
+
+        var accepted = allSubmissions
             .Where(s => s.StatusDisplay == "Accepted")
             .ToList();
 
         _logger.LogInformation("Found {Count} accepted submissions out of {Total} total.",
-            accepted.Count, submissions.Count);
+            accepted.Count, allSubmissions.Count);
 
         // 3. Filter to only new (unsynced) submissions
         var newSubmissions = accepted
