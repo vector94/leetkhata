@@ -4,8 +4,22 @@
 
 ## How It Works
 
-```
-LeetCode (GraphQL API) → LeetKhata → GitHub (Git Tree API)
+```mermaid
+flowchart LR
+    GA(["GitHub Actions<br/>daily · 6:00 UTC"]) --> F
+    LC[("LeetCode<br/>GraphQL API")] --> F
+
+    subgraph LeetKhata
+        F["Fetch recent<br/>accepted submissions"] --> N{"Already<br/>synced?"}
+        N -->|yes| K["Skip"]
+        N -->|no| D["Pull solution code +<br/>problem metadata"]
+        D --> O["Organize by difficulty,<br/>build per-language README"]
+    end
+
+    O -- "Git Tree API<br/>(one atomic commit)" --> GH[("GitHub<br/>solutions repo")]
+    GH -. "sync-state.json" .-> N
+
+    style LeetKhata fill:transparent,stroke:#7f7f7f,stroke-width:1px
 ```
 
 **Fetching** — Authenticates with your LeetCode session cookie & CSRF token, queries the GraphQL API for recent accepted submissions, then pulls solution code + problem metadata (difficulty, topics, stats).
@@ -70,7 +84,8 @@ The app reads configuration from `.env` automatically. Environment variables ove
 1. Push this repo to GitHub
 2. **Settings → Secrets and variables → Actions**
 3. Add **Secrets**: `LEETCODE_SESSION`, `LEETCODE_CSRF_TOKEN`, `GH_PAT`
-4. Add **Variables**: `LEETCODE_USERNAME`, `GITHUB_OWNER`, `GITHUB_REPO`
+4. Add **Variables**: `LEETCODE_USERNAME`, `GH_OWNER`, `GH_REPO`
+   (names starting with `GITHUB_` are reserved by GitHub Actions and cannot be created)
 
 Runs daily at 6:00 AM UTC. Trigger manually from the Actions tab anytime.
 

@@ -5,7 +5,10 @@ namespace LeetKhata.Services;
 
 public static class ReadmeGenerator
 {
-    public static string GenerateProblemReadme(LeetCodeProblem problem, SubmissionDetail submission, string username)
+    public static string GenerateProblemReadme(
+        LeetCodeProblem problem,
+        IEnumerable<LanguageSolution> solutions,
+        string username)
     {
         var sb = new StringBuilder();
 
@@ -24,35 +27,39 @@ public static class ReadmeGenerator
             sb.AppendLine();
         }
 
-        // Solution details
-        sb.AppendLine($"**Language:** {submission.Lang.VerboseName}");
-        sb.AppendLine();
-
-        if (submission.RuntimeDisplay != null)
+        // One section per language, oldest submission first
+        foreach (var solution in solutions.OrderBy(s => s.Timestamp))
         {
-            var runtimePct = submission.RuntimePercentile.HasValue
-                ? $" (beats {submission.RuntimePercentile.Value:F1}%)"
-                : "";
-            sb.AppendLine($"**Runtime:** {submission.RuntimeDisplay}{runtimePct}");
+            sb.AppendLine($"## {solution.LangVerboseName}");
             sb.AppendLine();
-        }
 
-        if (submission.MemoryDisplay != null)
-        {
-            var memoryPct = submission.MemoryPercentile.HasValue
-                ? $" (beats {submission.MemoryPercentile.Value:F1}%)"
-                : "";
-            sb.AppendLine($"**Memory:** {submission.MemoryDisplay}{memoryPct}");
+            if (solution.RuntimeDisplay != null)
+            {
+                var runtimePct = solution.RuntimePercentile.HasValue
+                    ? $" (beats {solution.RuntimePercentile.Value:F1}%)"
+                    : "";
+                sb.AppendLine($"**Runtime:** {solution.RuntimeDisplay}{runtimePct}");
+                sb.AppendLine();
+            }
+
+            if (solution.MemoryDisplay != null)
+            {
+                var memoryPct = solution.MemoryPercentile.HasValue
+                    ? $" (beats {solution.MemoryPercentile.Value:F1}%)"
+                    : "";
+                sb.AppendLine($"**Memory:** {solution.MemoryDisplay}{memoryPct}");
+                sb.AppendLine();
+            }
+
+            var submittedDate = DateTimeOffset.FromUnixTimeSeconds(solution.Timestamp).UtcDateTime;
+            sb.AppendLine($"**Submitted:** {submittedDate:MMMM dd, yyyy}");
+            sb.AppendLine();
+            sb.AppendLine($"**Submission:** [View on LeetCode](https://leetcode.com/problems/{problem.TitleSlug}/submissions/{solution.SubmissionId}/)");
             sb.AppendLine();
         }
 
         // Attribution
         sb.AppendLine($"**Author:** [{username}](https://leetcode.com/u/{username}/)");
-        sb.AppendLine();
-        var submittedDate = DateTimeOffset.FromUnixTimeSeconds(submission.Timestamp).UtcDateTime;
-        sb.AppendLine($"**Submitted:** {submittedDate:MMMM dd, yyyy}");
-        sb.AppendLine();
-        sb.AppendLine($"**Submission:** [View on LeetCode](https://leetcode.com/problems/{problem.TitleSlug}/submissions/{submission.Id}/)");
         sb.AppendLine();
 
         sb.AppendLine("---");

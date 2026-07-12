@@ -100,29 +100,24 @@ public class GitHubSyncClient : IGitHubSyncClient
         _logger.LogInformation("Committed successfully: {Sha} - {Message}", commit.Sha[..7], commitMessage);
     }
 
-    public async Task<Dictionary<string, int>> GetDifficultyCountsAsync()
+    public async Task<HashSet<string>> GetProblemFoldersAsync()
     {
-        var counts = new Dictionary<string, int>
-        {
-            ["Easy"] = 0,
-            ["Medium"] = 0,
-            ["Hard"] = 0
-        };
+        var difficulties = new HashSet<string> { "Easy", "Medium", "Hard" };
 
         var reference = await _client.Git.Reference.Get(_owner, _repo, $"heads/{_branch}");
         var tree = await _client.Git.Tree.GetRecursive(_owner, _repo, reference.Object.Sha);
 
-        var counted = new HashSet<string>();
+        var folders = new HashSet<string>();
         foreach (var item in tree.Tree)
         {
             if (item.Type != TreeType.Tree)
                 continue;
 
             var parts = item.Path.Split('/');
-            if (parts.Length == 2 && counts.ContainsKey(parts[0]) && counted.Add(item.Path))
-                counts[parts[0]]++;
+            if (parts.Length == 2 && difficulties.Contains(parts[0]))
+                folders.Add(item.Path);
         }
 
-        return counts;
+        return folders;
     }
 }

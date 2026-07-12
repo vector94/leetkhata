@@ -35,3 +35,6 @@ Thumbs.db
 
 ## Misc
 *.pdf
+
+## Claude Code
+.claude/settings.local.json

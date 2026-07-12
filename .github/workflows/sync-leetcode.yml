@@ -29,7 +29,8 @@ jobs:
           LEETKHATA__LeetCodeSession: ${{ secrets.LEETCODE_SESSION }}
           LEETKHATA__LeetCodeCsrfToken: ${{ secrets.LEETCODE_CSRF_TOKEN }}
           LEETKHATA__GitHubToken: ${{ secrets.GH_PAT }}
+          # Variable names must not start with GITHUB_ (reserved by GitHub Actions)
           LEETKHATA__LeetCodeUsername: ${{ vars.LEETCODE_USERNAME }}
-          LEETKHATA__GitHubOwner: ${{ vars.GITHUB_OWNER }}
-          LEETKHATA__GitHubRepo: ${{ vars.GITHUB_REPO }}
+          LEETKHATA__GitHubOwner: ${{ vars.GH_OWNER }}
+          LEETKHATA__GitHubRepo: ${{ vars.GH_REPO }}
         run: dotnet run --project src/LeetKhata/LeetKhata.csproj -c Release --no-build

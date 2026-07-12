@@ -95,16 +95,52 @@ public class SyncOrchestrator
                 await Task.Delay(1000);
                 var problem = await _leetcode.GetProblemAsync(sub.TitleSlug);
 
-                var files = _organizer.BuildFilesForSubmission(detail, problem, _options.LeetCodeUsername);
-                foreach (var kvp in files)
+                if (!state.ProblemSolutions.TryGetValue(problem.TitleSlug, out var solutions))
                 {
-                    allFiles[kvp.Key] = kvp.Value;
+                    solutions = new List<LanguageSolution>();
+                    state.ProblemSolutions[problem.TitleSlug] = solutions;
+                }
+
+                var entry = new LanguageSolution
+                {
+                    LangName = detail.Lang.Name,
+                    LangVerboseName = detail.Lang.VerboseName,
+                    SubmissionId = detail.Id,
+                    Timestamp = detail.Timestamp,
+                    RuntimeDisplay = detail.RuntimeDisplay,
+                    RuntimePercentile = detail.RuntimePercentile,
+                    MemoryDisplay = detail.MemoryDisplay,
+                    MemoryPercentile = detail.MemoryPercentile
+                };
+
+                // Keep only the newest submission per language; submissions arrive
+                // newest-first, so an older duplicate must not overwrite a newer one.
+                var existing = solutions.FirstOrDefault(s => s.LangName == entry.LangName);
+                if (existing is null || entry.Timestamp >= existing.Timestamp)
+                {
+                    if (existing is not null)
+                        solutions.Remove(existing);
+                    solutions.Add(entry);
+
+                    var files = _organizer.BuildFilesForSubmission(detail, problem, solutions, _options.LeetCodeUsername);
+                    foreach (var kvp in files)
+                    {
+                        allFiles[kvp.Key] = kvp.Value;
+                    }
+
+                    _logger.LogInformation("Prepared: {Title} ({Lang}) -> {Difficulty}/{Slug}",
+                        problem.Title, detail.Lang.VerboseName, problem.Difficulty, problem.TitleSlug);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Skipping older {Lang} submission for '{Title}'; a newer one is already synced.",
+                        detail.Lang.VerboseName, problem.Title);
                 }
 
                 syncedIds.Add(sub.Id);
-                syncedProblems.Add((problem.QuestionFrontendId, problem.Title, problem.Difficulty));
-                _logger.LogInformation("Prepared: {Title} -> {Difficulty}/{Slug}",
-                    problem.Title, problem.Difficulty, problem.TitleSlug);
+                if (!syncedProblems.Any(p => p.Id == problem.QuestionFrontendId))
+                    syncedProblems.Add((problem.QuestionFrontendId, problem.Title, problem.Difficulty));
             }
             catch (Exception ex)
             {
@@ -113,7 +149,7 @@ public class SyncOrchestrator
             }
         }
 
-        if (allFiles.Count == 0)
+        if (syncedIds.Count == 0)
         {
             _logger.LogWarning("No files to commit after processing. All submissions may have failed.");
             return;
@@ -126,17 +162,20 @@ public class SyncOrchestrator
         }
         allFiles[_tracker.GetSyncStateFilePath()] = _tracker.SerializeState(state);
 
-        // 6. Update repo README with difficulty counts
-        var counts = await _github.GetDifficultyCountsAsync();
-        var newFolders = allFiles.Keys
-            .Select(p => p.Split('/'))
-            .Where(p => p.Length >= 2 && counts.ContainsKey(p[0]))
-            .Select(p => $"{p[0]}/{p[1]}")
-            .ToHashSet();
-        foreach (var folder in newFolders)
+        // 6. Update repo README with difficulty counts. Union existing repo folders
+        // with the ones in this batch so a new language for an already-synced
+        // problem doesn't double-count it.
+        var folders = await _github.GetProblemFoldersAsync();
+        var counts = new Dictionary<string, int> { ["Easy"] = 0, ["Medium"] = 0, ["Hard"] = 0 };
+        foreach (var path in allFiles.Keys)
         {
-            var difficulty = folder.Split('/')[0];
-            counts[difficulty]++;
+            var parts = path.Split('/');
+            if (parts.Length >= 3 && counts.ContainsKey(parts[0]))
+                folders.Add($"{parts[0]}/{parts[1]}");
+        }
+        foreach (var folder in folders)
+        {
+            counts[folder.Split('/')[0]]++;
         }
         allFiles["README.md"] = BuildReadme(counts["Easy"], counts["Medium"], counts["Hard"]);
 

@@ -36,7 +36,6 @@ var configuration = new ConfigurationBuilder()
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(configuration)
-    .WriteTo.Console()
     .CreateLogger();
 
 var services = new ServiceCollection();

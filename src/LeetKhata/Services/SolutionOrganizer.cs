@@ -7,6 +7,7 @@ public class SolutionOrganizer
     public Dictionary<string, string> BuildFilesForSubmission(
         SubmissionDetail submission,
         LeetCodeProblem problem,
+        IReadOnlyList<LanguageSolution> allSolutions,
         string username)
     {
         var files = new Dictionary<string, string>();
@@ -15,7 +16,7 @@ public class SolutionOrganizer
         var extension = GetFileExtension(submission.Lang.Name);
 
         files[$"{basePath}/solution{extension}"] = submission.Code;
-        files[$"{basePath}/README.md"] = ReadmeGenerator.GenerateProblemReadme(problem, submission, username);
+        files[$"{basePath}/README.md"] = ReadmeGenerator.GenerateProblemReadme(problem, allSolutions, username);
 
         return files;
     }
