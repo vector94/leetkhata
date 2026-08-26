@@ -15,6 +15,18 @@ public class LeetCodeClient : ILeetCodeClient
         _logger = logger;
     }
 
+    public async Task<LeetCodeUserStatus> GetUserStatusAsync()
+    {
+        var response = await SendGraphQLAsync(Queries.UserStatus, new { });
+
+        var userStatusJson = response.RootElement
+            .GetProperty("data")
+            .GetProperty("userStatus");
+
+        return JsonSerializer.Deserialize<LeetCodeUserStatus>(userStatusJson.GetRawText())
+            ?? throw new InvalidOperationException("Failed to deserialize user status.");
+    }
+
     public async Task<List<LeetCodeSubmission>> GetRecentSubmissionsAsync(int offset = 0, int limit = 20)
     {
         _logger.LogInformation("Fetching submissions (offset={Offset}, limit={Limit})...", offset, limit);

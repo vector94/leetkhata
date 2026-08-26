@@ -2,6 +2,15 @@ namespace LeetKhata.LeetCode;
 
 public static class Queries
 {
+    public const string UserStatus = """
+        query {
+            userStatus {
+                isSignedIn
+                username
+            }
+        }
+        """;
+
     public const string SubmissionList = """
         query ($offset: Int!, $limit: Int!, $slug: String) {
             submissionList(offset: $offset, limit: $limit, questionSlug: $slug) {

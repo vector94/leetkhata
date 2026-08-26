@@ -36,6 +36,14 @@ public class SyncOrchestrator
     {
         _logger.LogInformation("Starting LeetKhata sync...");
 
+        // 0. Verify the LeetCode session is still valid
+        var userStatus = await _leetcode.GetUserStatusAsync();
+        if (!userStatus.IsSignedIn || string.IsNullOrEmpty(userStatus.Username))
+        {
+            throw new LeetCodeSessionExpiredException();
+        }
+        _logger.LogInformation("Authenticated as LeetCode user '{Username}'.", userStatus.Username);
+
         // 1. Load sync state from the repo
         var state = await _tracker.LoadStateAsync();
 
