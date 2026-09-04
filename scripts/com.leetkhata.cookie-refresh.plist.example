@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.leetkhata.cookie-refresh</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/path/to/leetkhata/scripts/.venv/bin/python3</string>
+        <string>/path/to/leetkhata/scripts/refresh-cookies.py</string>
+        <string>--github</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/path/to/leetkhata</string>
+
+    <!-- gh isn't on launchd's default PATH -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>StartInterval</key>
+    <integer>345600</integer>
+
+    <!-- StartInterval alone can miss runs across reboots -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/leetkhata-cookie-refresh.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/leetkhata-cookie-refresh.log</string>
+</dict>
+</plist>

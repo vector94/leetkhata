@@ -26,7 +26,7 @@ public class LeetCodeSessionExpiredException : Exception
         TIP: Run 'python3 scripts/refresh-cookies.py --both' to automate
         cookie capture and GitHub secrets update.
 
-        This typically needs to be done every 2-4 weeks.
+        This typically needs to be done about once a week.
         ============================================================
         """;
 }
