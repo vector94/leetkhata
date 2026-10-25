@@ -50,7 +50,7 @@ public class LeetCodeClient : ILeetCodeClient
         return submissions;
     }
 
-    public async Task<SubmissionDetail> GetSubmissionDetailAsync(int submissionId)
+    public async Task<SubmissionDetail> GetSubmissionDetailAsync(long submissionId)
     {
         _logger.LogInformation("Fetching submission detail for ID {Id}...", submissionId);
 

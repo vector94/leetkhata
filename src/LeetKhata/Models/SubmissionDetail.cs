@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace LeetKhata.Models;
 
 public record SubmissionDetail(
-    [property: JsonPropertyName("id")] int Id,
+    [property: JsonPropertyName("id")] long Id,
     [property: JsonPropertyName("code")] string Code,
     [property: JsonPropertyName("timestamp")] long Timestamp,
     [property: JsonPropertyName("runtimeDisplay")] string? RuntimeDisplay,

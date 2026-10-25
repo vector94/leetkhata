@@ -98,7 +98,7 @@ public class SyncOrchestrator
 
                 // Rate limiting: wait between API calls
                 await Task.Delay(1000);
-                var detail = await _leetcode.GetSubmissionDetailAsync(int.Parse(sub.Id));
+                var detail = await _leetcode.GetSubmissionDetailAsync(long.Parse(sub.Id));
 
                 await Task.Delay(1000);
                 var problem = await _leetcode.GetProblemAsync(sub.TitleSlug);

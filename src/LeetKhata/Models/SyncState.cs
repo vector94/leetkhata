@@ -14,7 +14,7 @@ public class LanguageSolution
 {
     public string LangName { get; set; } = "";
     public string LangVerboseName { get; set; } = "";
-    public int SubmissionId { get; set; }
+    public long SubmissionId { get; set; }
     public long Timestamp { get; set; }
     public string? RuntimeDisplay { get; set; }
     public double? RuntimePercentile { get; set; }
